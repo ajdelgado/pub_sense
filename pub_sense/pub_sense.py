@@ -56,7 +56,7 @@ class pub_sense:
     def _init_sense(self):
         self.sense = SenseHat()
         self.sense.set_rotation(180)
-        self.sense.low_light()
+        self.sense.low_light = True
         self._slow_message('Pub Sense intialized')
         self.get_data()
 
