@@ -50,7 +50,8 @@ class pub_sense:
         self.log_file = log_file
         self._init_log()
         self.sense = SenseHat()
-        self._slow_message('Pub Sense intialized...')
+        self.sense.set_rotation(180)
+        self._slow_message('Pub Sense intialized')
 
     def _slow_message(self, message):
         for letter in message:
