@@ -8,6 +8,7 @@
 import sys
 import os
 import logging
+import time
 import click
 import click_config_file
 from logging.handlers import SysLogHandler
@@ -49,6 +50,14 @@ class pub_sense:
         self.log_file = log_file
         self._init_log()
         self.sense = SenseHat()
+        self._slow_message('Pub Sense intialized...')
+
+    def _slow_message(self, message):
+        for letter in message:
+            self.sense.show_letter(letter)
+            time.sleep(0.5)
+            self.sense.clear()
+            time.sleep(0.1)
 
     def _init_log(self):
         ''' Initialize log object '''
