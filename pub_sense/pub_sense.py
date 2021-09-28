@@ -72,7 +72,7 @@ class pub_sense:
         self.sense = SenseHat()
         self.sense.set_rotation(180)
         self.sense.low_light = True
-        self._slow_message('Pub Sense intialized')
+        self._slow_message('On')
         self.get_data()
 
     def get_data(self):
@@ -88,13 +88,14 @@ class pub_sense:
         self.publish_data()
 
     def publish_data(self):
-        for key in self.data.keys():
-            message = f"{key}={self.data[key]}"
-            result = self.mqttclient.publish(self.topic, message)
-            if result[0] != 0:
-                self._log.error(f"Error {result[0]} publishing message '{message}'. {result}")
-            else:
-                self._log.debug(f"Result of publishing message '{message}': {result}")
+        # for key in self.data.keys():
+        #     message = f"{{key}}={self.data[key]}"
+        message = json.dumps(self.data)
+        result = self.mqttclient.publish(self.topic, message)
+        if result[0] != 0:
+            self._log.error(f"Error {result[0]} publishing message '{message}'. {result}")
+        else:
+            self._log.debug(f"Result of publishing message '{message}': {result}")
 
     def _slow_message(self, message):
         for letter in message:
