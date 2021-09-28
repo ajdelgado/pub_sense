@@ -11,6 +11,7 @@ import logging
 import click
 import click_config_file
 from logging.handlers import SysLogHandler
+from sense_hat import SenseHat
 
 class CustomFormatter(logging.Formatter):
     """Logging colored formatter, adapted from https://stackoverflow.com/a/56944256/3638629"""
@@ -47,6 +48,7 @@ class pub_sense:
             log_file = os.path.join(os.environ.get('HOME', os.environ.get('USERPROFILE', os.getcwd())), 'log', 'pub_sense.log')
         self.log_file = log_file
         self._init_log()
+        self.sense = SenseHat()
 
     def _init_log(self):
         ''' Initialize log object '''
