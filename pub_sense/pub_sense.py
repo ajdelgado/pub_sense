@@ -10,10 +10,12 @@ import os
 import logging
 import time
 import json
+import random
 import click
 import click_config_file
 from logging.handlers import SysLogHandler
 from sense_hat import SenseHat
+from paho.mqtt import client as mqtt_client
 
 class CustomFormatter(logging.Formatter):
     """Logging colored formatter, adapted from https://stackoverflow.com/a/56944256/3638629"""
@@ -43,15 +45,28 @@ class CustomFormatter(logging.Formatter):
 
 class pub_sense:
 
-    def __init__(self, debug_level, log_file):
+    def __init__(self, debug_level, log_file, broker, port, topic, user, password):
         ''' Initial function called when object is created '''
         self.debug_level = debug_level
         if log_file is None:
             log_file = os.path.join(os.environ.get('HOME', os.environ.get('USERPROFILE', os.getcwd())), 'log', 'pub_sense.log')
         self.log_file = log_file
         self._init_log()
+        self.broker = broker
+        self.port = port
+        self.topic = topic
+        self.user = user
+        self.password = password
+        self._init_mqtt()
         self.data = dict()
         self._init_sense()
+
+    def _init_mqtt(self):
+        client_id = f'python-mqtt-{random.randint(0, 1000)}'
+        self.mqttclient = mqtt_client.Client(client_id)
+        self.mqttclient.username_pw_set(self.user, self.password)
+        self.mqttclient.on_connect = self.on_connect
+        self.mqttclient.connect(self.broker, self.port)
 
     def _init_sense(self):
         self.sense = SenseHat()
@@ -69,7 +84,17 @@ class pub_sense:
         self.data['compass'] = self.sense.get_compass()
         self.data['gyroscope'] = self.sense.get_gyroscope()
         self.data['accelerometer'] = self.sense.get_accelerometer()
-        print(json.dumps(self.data, indent=2))
+        self._log.debug(json.dumps(self.data, indent=2))
+        self.publish_data()
+
+    def publish_data(self):
+        for key in self.data.keys():
+            message = f"{key}={self.data[key]}"
+            result = self.mqttclient.publish(self.topic, message)
+            if result[0] != 0:
+                self._log.error(f"Error {result[0]} publishing message '{message}'. {result}")
+            else:
+                self._log.debug(f"Result of publishing message '{message}': {result}")
 
     def _slow_message(self, message):
         for letter in message:
@@ -77,6 +102,12 @@ class pub_sense:
             time.sleep(0.5)
             self.sense.clear()
             time.sleep(0.1)
+
+    def on_connect(self, client, userdata, flags, rc):
+        if rc == 0:
+            self._log.debug("Connected to MQTT Broker!")
+        else:
+            self._log.error("Failed to connect, return code %d\n", rc)
 
     def _init_log(self):
         ''' Initialize log object '''
@@ -113,9 +144,14 @@ class pub_sense:
     ), help='Set the debug level for the standard output.')
 @click.option('--log-file', '-l', help="File to store all debug messages.")
 #@click.option("--dummy","-n", is_flag=True, help="Don't do anything, just show what would be done.") # Don't forget to add dummy to parameters of main function
+@click.option('--broker', '-b', required=True, help="MQTT broker.")
+@click.option('--port', '-p', default=1883, help="MQTT broker port.")
+@click.option('--topic', '-t', default='sense-hat', help="MQTT topic.")
+@click.option('--user', '-u', required=True, help="MQTT username.")
+@click.option('--password', '-w', required=True, help="MQTT password.")
 @click_config_file.configuration_option()
-def __main__(debug_level, log_file):
-    object = pub_sense(debug_level, log_file)
+def __main__(debug_level, log_file, broker, port, topic, user, password):
+    object = pub_sense(debug_level, log_file, broker, port, topic, user, password)
 
 if __name__ == "__main__":
     __main__()
