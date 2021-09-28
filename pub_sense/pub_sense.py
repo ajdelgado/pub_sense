@@ -9,6 +9,7 @@ import sys
 import os
 import logging
 import time
+import json
 import click
 import click_config_file
 from logging.handlers import SysLogHandler
@@ -49,9 +50,26 @@ class pub_sense:
             log_file = os.path.join(os.environ.get('HOME', os.environ.get('USERPROFILE', os.getcwd())), 'log', 'pub_sense.log')
         self.log_file = log_file
         self._init_log()
+        self.data = dict()
+        self._init_sense()
+
+    def _init_sense(self):
         self.sense = SenseHat()
         self.sense.set_rotation(180)
+        self.sense.low_light()
         self._slow_message('Pub Sense intialized')
+        self.get_data()
+
+    def get_data(self):
+        self.data['humidity'] = self.sense.get_humidity()
+        self.data['temperature'] = self.sense.get_temperature()
+        self.data['temperature_from_pressure'] = self.sense.get_temperature_from_pressure()
+        self.data['pressure'] = self.sense.get_pressure()
+        self.data['orientation'] = self.sense.get_orientation_degrees()
+        self.data['compass'] = self.sense.get_compass()
+        self.data['gyroscope'] = self.sense.get_gyroscope()
+        self.data['accelerometer'] = self.sense.get_accelerometer()
+        print(json.dumps(self.data, indent=2))
 
     def _slow_message(self, message):
         for letter in message:
