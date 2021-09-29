@@ -146,7 +146,11 @@ class pub_sense:
         for key in dictionary.keys():
             result += f"# HELP {key}\n"
             result += f"# TYPE {key}\n"
-            result += f"sense_hat_{key} {dictionary[key]}\n"
+            if isinstance(dictionary[key], dict):
+                for subkey in dictionary[key].keys():
+                    result += f"sense_hat_{key}_{subkey} {dictionary[key][subkey]}\n"
+            else:
+                result += f"sense_hat_{key} {dictionary[key]}\n"
         return result
 
     def save_node_exporter(self):
