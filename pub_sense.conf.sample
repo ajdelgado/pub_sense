@@ -1,0 +1,5 @@
+broker='192.168.1.1'
+port=1883
+topic='hostname_sense_hat'
+user='username'
+password='s3cr3t P4ssW0rd!'
