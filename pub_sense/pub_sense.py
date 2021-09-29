@@ -45,7 +45,7 @@ class CustomFormatter(logging.Formatter):
 
 class pub_sense:
 
-    def __init__(self, debug_level, log_file, broker, port, topic, user, password):
+    def __init__(self, debug_level, log_file, broker, port, topic, user, password, node_exporter_file_folder):
         ''' Initial function called when object is created '''
         self.debug_level = debug_level
         if log_file is None:
@@ -57,6 +57,7 @@ class pub_sense:
         self.topic = topic
         self.user = user
         self.password = password
+        self.node_exporter_file_folder = node_exporter_file_folder
         self._init_mqtt()
         self.data = dict()
         self._init_sense()
@@ -86,6 +87,7 @@ class pub_sense:
         self.data['accelerometer'] = self.sense.get_accelerometer()
         self._log.debug(f"Data from sense-hat: {json.dumps(self.data, indent=2)}")
         self.publish_data()
+        self.save_node_exporter()
 
     def publish_data(self):
         # for key in self.data.keys():
@@ -137,6 +139,20 @@ class pub_sense:
         self._log.addHandler(filehandler)
         return True
 
+    def dict2node_exporter(self, dictionary):
+        if not isinstance(dictionary, dict):
+            return False
+        result = ""
+        for key in dictionary.keys():
+            result += f"# HELP {key}\n"
+            result += f"# TYPE {key}\n"
+            result += f"{key} {dictionary[key]}"
+        return result
+
+    def save_node_exporter(self):
+        with open(os.path.join(self.node_exporter_file_folder, "sense_hat.prom"))  as node_exporter_file:
+            node_exporter_file.write(self.dict2node_exporter(self.data))
+
 @click.command()
 @click.option("--debug-level", "-d", default="INFO",
     type=click.Choice(
@@ -150,9 +166,10 @@ class pub_sense:
 @click.option('--topic', '-t', default='sense-hat', help="MQTT topic.")
 @click.option('--user', '-u', required=True, help="MQTT username.")
 @click.option('--password', '-w', required=True, help="MQTT password.")
+@click.option('--node-exporter-file-folder', '-f', default='/var/lib/prometheus/node-exporter/', required=False, help="MQTT password.")
 @click_config_file.configuration_option()
-def __main__(debug_level, log_file, broker, port, topic, user, password):
-    object = pub_sense(debug_level, log_file, broker, port, topic, user, password)
+def __main__(debug_level, log_file, broker, port, topic, user, password, node_exporter_file_folder):
+    object = pub_sense(debug_level, log_file, broker, port, topic, user, password, node_exporter_file_folder)
 
 if __name__ == "__main__":
     __main__()
