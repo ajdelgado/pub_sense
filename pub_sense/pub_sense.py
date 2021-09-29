@@ -84,7 +84,7 @@ class pub_sense:
         self.data['compass'] = self.sense.get_compass()
         self.data['gyroscope'] = self.sense.get_gyroscope()
         self.data['accelerometer'] = self.sense.get_accelerometer()
-        self._log.debug(json.dumps(self.data, indent=2))
+        self._log.debug(f"Data from sense-hat: {json.dumps(self.data, indent=2)}")
         self.publish_data()
 
     def publish_data(self):
