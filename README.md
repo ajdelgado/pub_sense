@@ -20,6 +20,14 @@
 
 - Configure Prometheus Node Exporter to collect text files in the file /etc/default/prometheus-node-exporter be sure *ARGS* contains *--collector.textfile.directory='/var/lib/prometheus/node-exporter'*
 
+- Configure your Prometheus server to have as target your raspberry node exporter. If *192.168.1.3* is the IP of your raspberry, this should be in your *prometheus.yml* file:
+
+  ```yaml
+  - job_name: 'servers-job'
+  static_configs:
+    - targets: ['192.168.1.3:9100']
+  ```
+
 - Create a file called /etc/systemd/system/pub_sense.timer with content:
 
   ```ini
@@ -62,5 +70,13 @@
 The service will run scheduled every minute (or what you put in OnUnitActiveSec), but if you want to run it manually:
 
 ```bash
-pub_sense.py [--debug-level|-d CRITICAL|ERROR|WARNING|INFO|DEBUG|NOTSET] --config <configuration_file>
+pub_sense.py [--help] [--broker <mqtt_broker>] [--port <mqtt_port>] [--topic <topic>] [--user <mqtt_user>] [--password <mqtt_password>] [--node-exporter-file-folder <node_exporter_file_collector_folder>] [--log-file <log_file>] [--debug-level|-d CRITICAL|ERROR|WARNING|INFO|DEBUG|NOTSET] [--config <configuration_file>]
   ```
+
+## Logs
+
+If log-file is not specified, $HOME/log/pub_sense.log will be used. But it was also published in syslog.
+
+## Security
+
+Avoid using the *--password* parameter in the command line, and use a configuration file well protected, with as few permissions as possible. Command lines (including the password) run by a user can be seen by other users of the system.
