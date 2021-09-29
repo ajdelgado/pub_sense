@@ -150,7 +150,7 @@ class pub_sense:
         return result
 
     def save_node_exporter(self):
-        with open(os.path.join(self.node_exporter_file_folder, "sense_hat.prom"))  as node_exporter_file:
+        with open(os.path.join(self.node_exporter_file_folder, "sense_hat.prom"), 'w')  as node_exporter_file:
             node_exporter_file.write(self.dict2node_exporter(self.data))
 
 @click.command()
