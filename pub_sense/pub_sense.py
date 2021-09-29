@@ -73,7 +73,7 @@ class pub_sense:
         self.sense = SenseHat()
         self.sense.set_rotation(180)
         self.sense.low_light = True
-        self._slow_message('On')
+        #self._slow_message('On')
         self.get_data()
 
     def get_data(self):
